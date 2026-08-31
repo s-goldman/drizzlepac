@@ -887,7 +887,7 @@ def build_auto_kernel(imgarr, whtarr, fwhm=3.0, threshold=None, source_box=7,
     return (kernel, kernel_psf), kernel_fwhm
 
 
-def find_fwhm(psf, default_fwhm, log_level=logutil.logging.INFO):
+def find_fwhm(psf, default_fwhm):
     """Determine FWHM for auto-kernel PSF
 
     This function iteratively fits a Gaussian model to the extracted PSF
@@ -934,22 +934,22 @@ def find_fwhm(psf, default_fwhm, log_level=logutil.logging.INFO):
         with use_future_column_names():
             phot_results = itr_phot_obj(psf)
     except Exception as x_cept:
-        log.warning(f"The find_fwhm() failed due to problem with fitting. Trying again. Exception: {x_cept}")
+        log.debug(f"The find_fwhm() failed due to problem with fitting. Trying again. Exception: {x_cept}")
         return None
 
     # Check the phot_results table was generated successfully
     if isinstance(phot_results, (type(None))):
-        log.warning("The PHOT_RESULTS table was not generated successfully. Trying again.")
+        log.debug("The PHOT_RESULTS table was not generated successfully. Trying again.")
         return None
 
     # Check the table actually has rows
     if len(phot_results['flux_fit']) == 0:
-        log.warning("The PHOT_RESULTS table has no rows. Trying again.")
+        log.debug("The PHOT_RESULTS table has no rows. Trying again.")
         return None
 
     # Check the 'flags' column has at least one row with a flag value of zero
     if (phot_results['flags'] == 0).sum() == 0:
-        log.warning("The PHOT_RESULTS table has no good rows. Trying again.")
+        log.debug("The PHOT_RESULTS table has no good rows. Trying again.")
         return None
 
     # Insure none of the fluxes determined by photutils is np.nan
