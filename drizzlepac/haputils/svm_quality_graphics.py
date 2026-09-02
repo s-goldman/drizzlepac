@@ -26,6 +26,25 @@ https://programminghistorian.org/en/lessons/visualizing-with-bokeh
 PUBLIC INTERFACE FOR THIS MODULE
  - build_svm_plots(HDF5_FILE, output_basename='', display_plot=False):
 
+
+To produce the figures, the use must first:
+
+ - compile the svm_poller_file
+ - run svm processing with log_level set to 10 or DEBUG to generate 
+   the total object pickle file (total_obj_list_full.pickle)
+   $ from drizzlepac.hapsequencer import run_hap_processing
+   $ run_hap_processing('svm_poller_file.txt', log_level=10)
+ - run svm_quality_analysis on a loaded pickle file
+   $ import pickle
+   $ from drizzlepac.haputils.svm_quality_analysis import run_quality_analysis
+   $ run_quality_analysis(pickle.load(open("total_obj_list_full.pickle", "rb")))
+ - harvest the json files into a single HDF5 file (svm_qa_dataframe.h5)
+   $ run drizzlepac/haputils/diagnostic_json_harvester.py
+ - run this module with the output file to generate the plots
+   $ run drizzlepac/haputils/svm_quality_graphics.py svm_qa_dataframe.h5
+   
+The output html figures, with names like svm_qa_cat_nsources.html,can be viewed 
+in a web browser.
 """
 
 # Standard library imports
