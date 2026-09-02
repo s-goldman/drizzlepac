@@ -21,6 +21,9 @@ number of the code change for that issue.  These PRs can be viewed at:
 3.12.0 (TBD)
 ============
 
+- Re-enabled the svm_quality_graphics functionality to generate quality 
+  assurance graphics for SVM products. [#2180]
+
 - Improved MVM guide star failure check to reintroduce exposures that
   were incorrectly excluded due to PSF spikes, saturation, and CTE issues. [#2101]
 
