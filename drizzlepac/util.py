@@ -160,7 +160,7 @@ def init_logging(logfile=DEFAULT_LOGNAME, default=None, level=logging.INFO):
         root_logger.setLevel(level)
         root_logger.addHandler(_log_file_handler)
 
-        print('Setting up logfile : ', logname)
+        log.debug('Setting up logfile : %s', logname)
 
     else:
         print('No trailer file created...')
@@ -175,11 +175,11 @@ def end_logging(filename=None):
 
     if logutil.global_logging_started:
         if filename:
-            log.info(f'Trailer file written to: {filename}')
+            log.debug(f'Trailer file written to: {filename}')
         else:
             # This generally shouldn't happen if logging was started with
             # init_logging and a filename was given...
-            log.info('No trailer file saved...')
+            log.debug('No trailer file saved...')
 
         logutil.teardown_global_logging()
     else:
@@ -292,7 +292,7 @@ with_logging = WithLogging()
 def print_pkg_versions(packages=None, git=False, svn=False, log=None):
     if log is not None:
         def output(msg):
-            log.info(msg)
+            log.debug(msg)
     else:
         def output(msg):
             print(msg)
@@ -366,7 +366,7 @@ class ProcSteps:
         step.
         """
         ptime = _ptime()
-        log.info(f"\n==== Processing Step '{key}' started at {ptime[0]}")
+        log.debug(f"\n==== Processing Step '{key}' started at {ptime[0]}")
         self.steps[key] = {
             'start': ptime,
             'end': ptime,
@@ -401,11 +401,11 @@ class ProcSteps:
             self.delayed_msg = msg
         else:
             self.delayed_msg = None
-            log.info(msg)
+            log.debug(msg)
 
     def flush(self):
         if self.delayed_msg is not None:
-            log.info(self.delayed_msg)
+            log.debug(self.delayed_msg)
             self.delayed_msg = None
 
 
@@ -415,7 +415,7 @@ class ProcSteps:
         performed steps.
         """
         self.flush()  # print any delayed messages
-        log.info(ProcSteps.__report_header)
+        log.debug(ProcSteps.__report_header)
 
         self.end = _ptime()
         total_time = 0
@@ -432,10 +432,10 @@ class ProcSteps:
                 note = "(off)"
             else:
                 note = ''
-            log.info(f"   {step:20s}          {_time:0.4f} sec {note}")
-        log.info(f"   {'=' * 20:20s}          {'=' * 20:s}")
-        log.info(f"   {'Total':20s}          {total_time:0.4f} sec")
-        log.info("")
+            log.debug(f"   {step:20s}          {_time:0.4f} sec {note}")
+        log.debug(f"   {'=' * 20:20s}          {'=' * 20:s}")
+        log.debug(f"   {'Total':20s}          {total_time:0.4f} sec")
+        log.debug("")
 
 
 def _ptime():
@@ -887,7 +887,7 @@ def printParams(paramDictionary, all=False, log=None):
 
     if log is not None:
         def output(msg):
-            log.info(msg)
+            log.debug(msg)
     else:
         def output(msg):
             print(msg, flush=True)
@@ -1487,9 +1487,9 @@ def get_envvar_switch(envvar_name, default, description=''):
             msg += f"Valid values: {', '.join(sorted(valid_values))}"
             raise ValueError(msg)
         result = envvar_bool_dict[val]
-        log.info(f"ENVVAR {envvar_name} found, setting {description_text}to {result}.")
+        log.debug(f"ENVVAR {envvar_name} found, setting {description_text}to {result}.")
     else:
         result = envvar_bool_dict[default]
-        log.info(f"ENVVAR {envvar_name} not found, setting {description_text}to default of {result}.")
+        log.debug(f"ENVVAR {envvar_name} not found, setting {description_text}to default of {result}.")
     
     return result

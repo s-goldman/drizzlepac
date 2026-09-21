@@ -494,7 +494,7 @@ def get_catalog(ra, dec, sr=0.1, epoch=None, catalog='GSC241'):
     spec = base_spec + epoch_str.format(epoch) if epoch else base_spec
 
     serviceUrl = '{}/{}?{}'.format(SERVICELOCATION, serviceType, spec)
-    log.info(f"Getting catalog using: \n    {serviceUrl}")
+    log.debug(f"Getting catalog using: \n    {serviceUrl}")
     rawcat = requests.get(serviceUrl, headers=headers)
     r_contents = rawcat.content.decode()  # convert from bytes to a String
     rstr = r_contents.split('\r\n')
@@ -1142,7 +1142,7 @@ def extract_sources(img, dqmask=None, fwhm=3.0, kernel=None, photmode=None,
         kernel = kernel[kcenter - koffset: kcenter + koffset + 1,
                         kcenter - koffset: kcenter + koffset + 1].copy()
         kernel /= kernel.sum()  # normalize to total sum == 1
-        log.info("Looking for crowded sources using smaller kernel with shape: {}".format(kernel.shape))
+        log.debug("Looking for crowded sources using smaller kernel with shape: {}".format(kernel.shape))
         if PHOTUTILS_GE_3:
             segm = detect_sources(convolve(imgarr, kernel), segment_threshold, n_pixels=source_box)
         else:
@@ -1189,7 +1189,7 @@ def extract_sources(img, dqmask=None, fwhm=3.0, kernel=None, photmode=None,
         else:
             src_brightest = np.arange(len(segm.labels))
 
-        log.info("Looking for sources in {} segments".format(len(segm.labels)))
+        log.debug("Looking for sources in {} segments".format(len(segm.labels)))
 
         for indx in src_brightest:
             segment = segm.segments[indx]
@@ -1267,9 +1267,9 @@ def extract_sources(img, dqmask=None, fwhm=3.0, kernel=None, photmode=None,
         src_table.rename_column('max_value', 'peak')
 
     if src_table is not None:
-        log.info("Total Number of detected sources: {}".format(len(src_table)))
+        log.debug("Total Number of detected sources: {}".format(len(src_table)))
     else:
-        log.info("No detected sources!")
+        log.debug("No detected sources!")
         return None, None, None
 
     # Include magnitudes for each source for use in verification of alignment through
