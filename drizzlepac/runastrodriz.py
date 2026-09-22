@@ -615,7 +615,7 @@ def process(inFile, force=False, newpath=None, num_cores=None, inmemory=True,
             # run updatewcs with use_db=True to insure all products have
             # have a priori solutions as extensions
             # FIX: This should probably only be done in the apriori sub-directory!
-            updatewcs.updatewcs(_calfiles, verbose=True)
+            updatewcs.updatewcs(_calfiles)
             for _file in _calfiles:
                 confirm_aposteriori_hdrlets(_file)
 

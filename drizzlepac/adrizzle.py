@@ -929,7 +929,8 @@ def run_driz(imageObjectList, output_wcs, paramDict, single, build, wcsmap=None)
 
     # print out parameters being used for drizzling
     log.debug("Running Drizzle to create output frame with WCS of: ")
-    output_wcs.printwcs()
+    if log.isEnabledFor(logging.DEBUG):
+        output_wcs.printwcs()
 
     # Will we be running in parallel?
     pool_size = util.get_pool_size(paramDict.get("num_cores"), len(imageObjectList))

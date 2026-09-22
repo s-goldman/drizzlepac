@@ -737,7 +737,7 @@ def _skymatch(imageList, paramDict, in_memory, clean, logfile):
                  clobber     = True,
                  clean       = clean,
                  verbose     = True,
-                 flog        = MultiFileLog(console = True, enableBold = False),
+                 flog        = MultiFileLog(console = False, enableBold = False),
                  _taskname4history = 'AstroDrizzle')
     except Exception:
         if 'match' in paramDict['skymethod']:  # This catches 'match' and 'globalmin+match'
@@ -762,7 +762,7 @@ def _skymatch(imageList, paramDict, in_memory, clean, logfile):
                      clobber=True,
                      clean=clean,
                      verbose=True,
-                     flog=MultiFileLog(console=True, enableBold=False),
+                     flog=MultiFileLog(console=False, enableBold=False),
                      _taskname4history='AstroDrizzle')
         else:
             raise

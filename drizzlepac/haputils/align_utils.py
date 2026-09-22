@@ -921,7 +921,7 @@ def match_relative_fit(imglist, reference_catalog, **fit_pars):
     if not check_consistency(imglist):
             return imglist
 
-    log.info("Relative alignment found: ")
+    log.debug("Relative alignment found: ")
     for i in imglist:
         info = i.meta['fit_info']
         if 'shift' not in info:
@@ -938,7 +938,7 @@ def match_relative_fit(imglist, reference_catalog, **fit_pars):
         msg += "\n    SHIFT:({:9.4f},{:9.4f})  NMATCHES: {} ".format(off[0], off[1], nmatches)
         msg += "\n    ROT:{:9.4f}  SCALE:{:9.4f}".format(rot, scale)
         msg += "\n Using fitgeom = '{}'".format(rel_fitgeom)
-        log.info(msg)
+        log.debug(msg)
 
     # This logic enables performing only relative fitting and skipping fitting to GAIA
     if reference_catalog is not None:
@@ -1012,7 +1012,7 @@ def match_default_fit(imglist, reference_catalog, **fit_pars):
 
     nclip = 1 if fitgeom == 'rscale' else 0  # Only perform sigma-clipping for 'rscale'
 
-    log.info("{} (match_default_fit) Cross matching and fitting "
+    log.debug("{} (match_default_fit) Cross matching and fitting "
              "{}".format("-" * 20, "-" * 27))
     # Specify matching algorithm to use
     match = XYXYMatch(**fit_pars)
@@ -1079,7 +1079,7 @@ def match_2dhist_fit(imglist, reference_catalog, **fit_pars):
 
     nclip = 1 if fitgeom == 'rscale' else 0  # Only perform sigma-clipping for 'rscale'
 
-    log.info("{} (match_2dhist_fit) Cross matching and fitting "
+    log.debug("{} (match_2dhist_fit) Cross matching and fitting "
              "{}".format("-" * 20, "-" * 28))
     # Specify matching algorithm to use
     match = XYXYMatch(**fit_pars)
@@ -1136,14 +1136,14 @@ def check_consistency(imglist, rot_tolerance=0.1, shift_tolerance=1.0):
             img.meta['fit_info']['status'] = 'FAILED'
             img.meta['fit_info']['process_msg'] = msg
 
-        log.info('Relative fit solution is NOT consistent!')
+        log.debug('Relative fit solution is NOT consistent!')
         fitgeom = finfo['fitgeom'] if 'fitgeom' in finfo else 'Unknown'
         log.debug('DELTAS for "{}" fit:'.format(fitgeom))
         log.debug('  max rot={:.4f}\n '.format(delta_rots.max()))
         is_consistent = False
 
     else:
-        log.info('Relative fit solution is consistent')
+        log.debug('Relative fit solution is consistent')
 
     return is_consistent
 
@@ -1399,7 +1399,7 @@ def update_image_wcs_info(tweakwcs_output, headerlet_filenames=None, fit_label=N
 
             # save relative fit solution keywords to science header
             if "relative" in item.meta["fit method"]:
-                log.info("overwriting relative fit result keywords")
+                log.debug("overwriting relative fit result keywords")
                 hdulist[sci_extn].header["RELGEOM"] = fitgeom_val
                 hdulist[sci_extn].header["RELMATCH"] = nmatch_val
                 hdulist[sci_extn].header["RELRMS_D"] = rms_dec_val

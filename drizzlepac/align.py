@@ -575,7 +575,7 @@ def perform_align(
             result.meta = filtered_table.meta
             for col in filtered_table.colnames:
                 result.add_column(filtered_table[col], name=col)
-        if filtered_table is not None:
+        if filtered_table is not None and log.isEnabledFor(logging.DEBUG):
             filtered_table.pprint(max_width=-1)
     return alignment_table
 

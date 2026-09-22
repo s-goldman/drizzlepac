@@ -463,10 +463,11 @@ def update_wcs(image, extnum, new_wcs, wcsname="", reusename=False, verbose=Fals
     try:
         logstr = f'Updating header for {image.filename()}[{extnum}]'
         if verbose:
-            print(logstr)
+            log.debug(logstr)
             log.debug('    with WCS of')
-            new_wcs.printwcs()
-            print("WCSNAME  : ", wcsname)
+            if log.isEnabledFor(logging.DEBUG):
+                new_wcs.printwcs()
+            log.debug("WCSNAME  : %s", wcsname)
         else:
             log.debug(logstr)
 
