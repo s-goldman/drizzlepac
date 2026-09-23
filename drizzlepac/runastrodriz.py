@@ -268,6 +268,8 @@ def process(inFile, force=False, newpath=None, num_cores=None, inmemory=True,
     package_level_logger.addHandler(stream_handler)
     package_level_logger.setLevel(default_log_level)
 
+    util.print_pkg_versions(log=log, once=True)
+    
     init_time = time.time()
     pipeline_pars = PIPELINE_PARS.copy()
     _verify = True  # Switch to control whether to verify alignment or not

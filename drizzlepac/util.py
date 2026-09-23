@@ -303,13 +303,43 @@ class WithLogging:
 with_logging = WithLogging()
 
 
-def print_pkg_versions(packages=None, git=False, svn=False, log=None):
+_pkg_versions_printed = False
+
+
+_pkg_version_labels = {
+    'drizzlepac': 'DrizzlePac',
+    'tweakwcs': 'TweakWCS',
+    'numpy': 'NumPy',
+    'astropy': 'Astropy',
+    'stwcs': 'STWCS',
+    'photutils': 'Photutils',
+}
+
+
+def print_pkg_versions(packages=None, git=False, svn=False, log=None, once=False):
+    """
+    Parameters
+    ----------
+    once : bool, optional
+        If True, skip printing if this function has already been called
+        with ``once=True`` earlier in the process (DEFAULT = False).
+    """
+    global _pkg_versions_printed
+    if once:
+        if _pkg_versions_printed:
+            return
+        _pkg_versions_printed = True
+
     if log is not None:
         def output(msg):
-            log.debug(msg)
+            log.info(msg)
     else:
         def output(msg):
             print(msg)
+
+    output('=' * 70)
+    output(' DrizzlePac')
+    output('=' * 70)
 
     pkgs = ['drizzlepac', 'tweakwcs', 'numpy', 'astropy', 'stwcs', 'photutils']
     if packages is not None:
@@ -317,29 +347,30 @@ def print_pkg_versions(packages=None, git=False, svn=False, log=None):
             packages = [packages]
         pkgs.extend(packages)
 
-    output('Version Information')
-    output('-' * 20)
-    sysver = sys.version.split('\n')
-    output('Python Version %s' % sysver.pop())
-    for ver in sysver:
-        output(ver)
+    import datetime
+    labels = ['Date', 'Python']
+    values = [datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+              sys.version.split()[0]]
 
     for software in pkgs:
+        labels.append(_pkg_version_labels.get(software, software.capitalize()))
         try:
             package = __import__(software)
-            vstr = "%s " % (software)
-            try:
-                vstr += "Version -> " + package.__version__ + " "
-            except Exception:
-                vstr += "No version defined.  "
+            vstr = getattr(package, '__version__', 'No version defined.')
             if git:
                 try:
-                    vstr += "\n    GIT version -> " + '-'.join([package.__version__, package.__version_post__, package.__version_commit]).rstrip()
+                    vstr += " (GIT: " + '-'.join(
+                        [package.__version__, package.__version_post__,
+                         package.__version_commit]).rstrip() + ")"
                 except Exception:
-                    vstr += " "
+                    pass
         except Exception:
-            vstr = software + " not found in path..."
-        output(vstr)
+            vstr = 'not found in path...'
+        values.append(vstr)
+
+    width = max(len(label) for label in labels) + 1
+    for label, value in zip(labels, values):
+        output(f"{label + ':':<{width}} {value}")
 
 
 class ProcSteps:
