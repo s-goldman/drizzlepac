@@ -19,6 +19,7 @@ import platform
 
 import numpy as np
 import astropy
+import warnings
 
 from astropy.io import fits
 from stsci.tools import fileutil, teal, cfgpars, logutil
@@ -188,20 +189,33 @@ def end_logging(filename=None):
     root_logger.removeHandler(_log_file_handler)
 
 
-class SuppressNoisyAstropyWCS(logging.Filter):
-    """Filter known non-actionable Astropy WCS informational messages."""
+class SuppressNoisyMessages(logging.Filter):
+    """Filter known non-actionable informational messages."""
 
     _messages = (
         "Inconsistent SIP distortion information",
         "Some non-standard WCS keywords were excluded",
+        "The run function is deprecated and may be removed in a future version.",
+        "Card is too long, comment will be truncated.",
+        "Keyword name 'IDCSCALE",
+        "'wcsname' must be unique in image header.",
+        "-Drizzling using kernel =",
     )
 
     def filter(self, record):
         return not any(message in record.getMessage() for message in self._messages)
 
 
-logging.getLogger('astropy').addFilter(SuppressNoisyAstropyWCS())
+_suppress_noisy_messages = SuppressNoisyMessages()
+logging.getLogger('astropy').addFilter(_suppress_noisy_messages)
+logging.getLogger('drizzlepac.cdriz').addFilter(_suppress_noisy_messages)
 
+warnings.filterwarnings(
+    "ignore",
+    message="Card is too long, comment will be truncated.",
+    category=fits.verify.VerifyWarning,
+    module="astropy.io.fits.card",
+)
 
 class WithLogging:
     def __init__(self):
