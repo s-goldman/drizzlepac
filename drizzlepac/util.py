@@ -316,57 +316,48 @@ _pkg_version_labels = {
 }
 
 
-def print_pkg_versions(packages=None, git=False, svn=False, log=None, once=False):
+def print_pkg_versions(log=None, once=False):
     """
     Parameters
     ----------
+    log : logging.Logger, optional
+        Logger to use for output. If not provided, output is printed to stdout.
     once : bool, optional
         If True, skip printing if this function has already been called
         with ``once=True`` earlier in the process (DEFAULT = False).
     """
     global _pkg_versions_printed
+
+    if once and _pkg_versions_printed:
+        return
     if once:
-        if _pkg_versions_printed:
-            return
         _pkg_versions_printed = True
 
-    if log is not None:
-        def output(msg):
-            log.info(msg)
-    else:
-        def output(msg):
-            print(msg)
+    output = log.info if log is not None else print
 
     output('=' * 70)
     output(' DrizzlePac')
     output('=' * 70)
 
     pkgs = ['drizzlepac', 'tweakwcs', 'numpy', 'astropy', 'stwcs', 'photutils']
-    if packages is not None:
-        if not isinstance(packages, list):
-            packages = [packages]
-        pkgs.extend(packages)
 
     import datetime
+
     labels = ['Date', 'Python']
-    values = [datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-              sys.version.split()[0]]
+    values = [
+        datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        sys.version.split()[0],
+    ]
 
     for software in pkgs:
         labels.append(_pkg_version_labels.get(software, software.capitalize()))
         try:
             package = __import__(software)
-            vstr = getattr(package, '__version__', 'No version defined.')
-            if git:
-                try:
-                    vstr += " (GIT: " + '-'.join(
-                        [package.__version__, package.__version_post__,
-                         package.__version_commit]).rstrip() + ")"
-                except Exception:
-                    pass
+            version = getattr(package, '__version__', 'No version defined.')
         except Exception:
-            vstr = 'not found in path...'
-        values.append(vstr)
+            version = 'not found in path...'
+
+        values.append(version)
 
     width = max(len(label) for label in labels) + 1
     for label, value in zip(labels, values):
