@@ -744,7 +744,7 @@ def _skymatch(imageList, paramDict, in_memory, clean, logfile):
             new_method = 'globalmin' if 'globalmin' in paramDict['skymethod'] else 'localmin'
 
             # revert to simpler sky computation algorithm
-            log.warning('Reverting sky computation to "localmin" from "{}'.format(paramDict['skymethod']))
+            log.debug('Reverting sky computation to "localmin" from "{}"'.format(paramDict['skymethod']))
             skymatch(new_fi,
                      skymethod=new_method,
                      skystat=paramDict['skystat'],
