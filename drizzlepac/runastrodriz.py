@@ -186,7 +186,7 @@ envvar_compute_name = 'ASTROMETRY_COMPUTE_APOSTERIORI'
 envvar_new_apriori_name = "ASTROMETRY_APPLY_APRIORI"
 envvar_qa_stats_name = "PIPELINE_QUALITY_TESTING"
 envvar_reset_idctab_name = "PIPELINE_RESET_IDCTAB"
-envvar_skip_visit_level_aposteriori_alignment = "SKIP_APOSTERIORI_IF_VISIT_LEVEL_ALIGNMENT"
+envvar_skip_visit_level_aposteriori_alignment_name = "SKIP_APOSTERIORI_IF_VISIT_LEVEL_ALIGNMENT"
 
 # Order of preference for common WCS solutions - brute force choice of the GAIA catalog preference.
 # Enforce the chosen order for the WCS preferential solution for all exposures in a dataset.
@@ -304,7 +304,7 @@ def process(inFile, force=False, newpath=None, num_cores=None, inmemory=True,
     )
 
     skip_visit_level_aposteriori = util.get_envvar_switch(
-        envvar_skip_visit_level_aposteriori_alignment,
+        envvar_skip_visit_level_aposteriori_alignment_name,
         description="'Skip visit-level a posteriori alignment'",
         default=False
     )
@@ -642,9 +642,7 @@ def process(inFile, force=False, newpath=None, num_cores=None, inmemory=True,
                     log.warning(f'WARNING: WCS reference pixel is {sep.value:.2f} degrees '+
                                    'from target position. The astrometry database solution is suspect!')
 
-            # Check the primary WCS solutions applied by the astrometry
-            # database BEFORE verify_gaia_wcsnames() can replace any
-            # a posteriori solution with an a priori one.
+            # Checking for a posteriori WCS solutions
             _wnames_calfiles = [(c, fits.getval(c, 'wcsname', ext=1)) for c in _calfiles]
             log.debug("Verifying apriori WCSNAMEs:")
             for (_cname, _wname) in _wnames_calfiles:
@@ -654,7 +652,7 @@ def process(inFile, force=False, newpath=None, num_cores=None, inmemory=True,
             # and skip all further alignment if every exposure has a
             # 'FIT_SVM' solution and the environment variable
             # SKIP_APOSTERIORI_IF_VISIT_LEVEL_ALIGNMENT has been turned on.
-            svm_wcsname = all('FIT_SVM' in _w for _c, _w in _wnames_calfiles)
+            svm_wcsname = all_visit_level_wcsnames([_w for _c, _w in _wnames_calfiles])
             skip_svm_alignment = skip_visit_level_aposteriori and svm_wcsname
             if skip_svm_alignment:
                 log.warning("All input exposures have visit-level a posteriori "
@@ -1384,6 +1382,31 @@ def apply_headerlet(filename, headerlet_file, flcfile=None):
                 fhdu[extn].header['wcstype'] = fits.getval(flcfile, 'wcstype', extn)
 
 
+def all_visit_level_wcsnames(wcsnames):
+    """Return True if every WCSNAME is a visit-level ('FIT_SVM') a posteriori solution."""
+    return all('FIT_SVM' in wcsname for wcsname in wcsnames)
+
+
+def _find_most_recent_apriori_wcs(wcsnames, hdrnames, wcsdates):
+    """Return (wcsdate, hdrname, wcsname) of the preferred a priori WCS, or None."""
+    most_recent_wcs = None
+    for apriori_type in apriori_priority:
+        # For each WCSNAME/HDRNAME in the file...
+        for wname, hname, wdate in zip(wcsnames, hdrnames, wcsdates):
+            # Look for apriori_type (HSC, GSC,...) based on newest IDCTAB
+            # while ignoring a posteriori ('-FIT') solutions
+            if apriori_type in wname and '-FIT' not in wname:
+                if (
+                    most_recent_wcs and wdate > most_recent_wcs[0]
+                ) or most_recent_wcs is None:
+                    most_recent_wcs = (wdate, hname, wname)
+
+        if most_recent_wcs:
+            break
+
+    return most_recent_wcs
+
+
 def verify_gaia_wcsnames(filenames, catalog_name='GSC240', catalog_date=gsc240_date):
     """Insure that data taken with GAIA has WCSNAME reflecting that"""
     gsc240 = catalog_date.split('-')
@@ -1463,21 +1486,7 @@ def verify_gaia_wcsnames(filenames, catalog_name='GSC240', catalog_date=gsc240_d
                     wcsdates = [fits.getval(fileutil.osfn(idc), 'date') for idc in idctabs]
 
                     # Look for priority apriori WCS
-                    restored = False
-                    most_recent_wcs = None
-                    for apriori_type in apriori_priority:
-                        # For each WCSNAME/HDRNAME in the file...
-                        for wname, hname, wdate in zip(wcsnames, hdrnames, wcsdates):
-                            # Look for apriori_type (HSC, GSC,...) based on newest IDCTAB
-                            # while ignoring a posteriori ('-FIT') solutions
-                            if apriori_type in wname and '-FIT' not in wname:
-                                if (
-                                    most_recent_wcs and wdate > most_recent_wcs[0]
-                                ) or most_recent_wcs is None:
-                                    most_recent_wcs = (wdate, hname, wname)
-
-                        if most_recent_wcs:
-                            break
+                    most_recent_wcs = _find_most_recent_apriori_wcs(wcsnames, hdrnames, wcsdates)
 
                     if most_recent_wcs:
                         # restore this WCS
